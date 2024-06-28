@@ -1,0 +1,98 @@
+﻿@page "/"
+@using System.Text.RegularExpressions
+
+<PageTitle>Shopee Coins Calculator</PageTitle>
+<style>
+	body {
+		background-color: lightgoldenrodyellow;
+	}
+</style>
+<div style="display: flex; height: 90vh;">
+	<div style="flex: 1; display: flex; flex-direction: column;">
+		<h1>1. 蝦幣紀錄貼到這裡</h1>
+		<textarea @bind="inputText" style="flex: 1; resize: none; "></textarea>
+		<br />
+	</div>
+	<div style="flex: 1; margin-left: 20px;">
+		<h1>2. 按下計算</h1>
+		<button class="btn-info" @onclick="CountLines">計算</button>
+		<br />
+		<div style="margin-top: 20px;">
+			<p>含轉盤共 @RetrivedCount 場直播蝦幣</p>
+			<p>總共賺了 @TotalAmount 蝦幣</p>
+			<table class="table" style="width: auto; border-collapse: collapse; max-width: 100%; border: 2px solid black;">
+				<thead>
+					<tr>
+						<th>蝦幣</th>
+						<th>次數</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (SummaryData != null)
+						foreach (var g in SummaryData)
+						{
+							<tr>
+								<td>@g.Key</td>
+								<td>@g.Count()</td>
+							</tr>
+						}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@code {
+	private string inputText = string.Empty;
+
+	private int RetrivedCount = 0;
+	private decimal TotalAmount = 0;
+	private List<IGrouping<decimal, decimal>> SummaryData = new List<IGrouping<decimal, decimal>>();
+
+	private void CountLines()
+	{
+		TotalAmount = 0;
+		RetrivedCount = Regex.Matches(inputText, "直播蝦幣").Count;
+		List<(Match, bool)> list = new List<(Match, bool)>();
+
+		foreach (Match m in Regex.Matches(inputText, "直播蝦幣"))
+			list.Add((m, true));
+
+
+		string pattern = @"\+\d+(\.\d+)?";
+		foreach (Match m in Regex.Matches(inputText, pattern))
+		{
+			list.Add((m, false));
+			//Console.WriteLine(m.Index);
+			//total+=decimal.Parse( m.Value);
+		}
+
+		list = list.OrderBy(x => x.Item1.Index).ToList();
+
+		bool need = false;
+		List<decimal> values = new List<decimal>();
+
+		for (int i = 0; i < list.Count; i++)
+		{
+			var x = list[i];
+			var m = x.Item1;
+			if (need)
+			{
+				var v = decimal.Parse(m.Value);
+				values.Add(v);
+				TotalAmount += v;
+				need = false;
+				continue;
+			}
+			if (x.Item2)
+			{
+				need = true;
+				continue;
+			}
+		}
+
+		SummaryData = values.GroupBy(v => v)
+			.OrderByDescending(v => v.Key)
+			.ToList();
+	}
+}
