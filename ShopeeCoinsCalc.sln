@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34902.84
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopeeCoinsCalc", "ShopeeCoinsCalc\ShopeeCoinsCalc.csproj", "{33DF817F-25E5-444C-B033-1A8DEADD649A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShopeeCoinsCalc", "ShopeeCoinsCalc\ShopeeCoinsCalc.csproj", "{33DF817F-25E5-444C-B033-1A8DEADD649A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
