@@ -13,10 +13,10 @@
 <div style="display: flex; height: 90vh;">
 	<div style="flex: 1; display: flex; flex-direction: column;">
 		<h1>1. 蝦幣紀錄貼到這裡</h1>
-		<textarea @bind="_viewModel.InputText" style="flex: 1; resize: none; "></textarea>
+        <textarea @bind="_viewModel.InputText" style="flex: 1; resize: none;"></textarea>
 		<br />
 		<h1>2. 按下計算</h1>
-		<button class="btn-info" @onclick="Count">計算</button>
+        <button class="btn-info" @onclick="Count" style="width: 200px; height: 100px; margin: auto"><h1>計算</h1></button>
 	</div>
 </div>
 
@@ -24,12 +24,12 @@
 ViewModel="_viewModel"/>
 
 @code{
+    [Inject]
+    private ResultViewModel _viewModel { get; set; } = new ResultViewModel();
 
-	[Inject]
-	private ResultViewModel _viewModel { get; set; }
-
-	private void Count()
-	{
-		_viewModel.Count();
-	}
+    private void Count()
+    {
+        if (!string.IsNullOrWhiteSpace(_viewModel.InputText))
+            _viewModel.Count();
+    }
 }
