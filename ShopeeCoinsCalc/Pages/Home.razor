@@ -4,6 +4,8 @@
 @using ShopeeCoinsCalc.Models
 @using ShopeeCoinsCalc.Components
 
+@inject IJSRuntime JS;
+
 <PageTitle>Shopee Coins Calculator</PageTitle>
 <style>
 	body {
@@ -13,7 +15,7 @@
 <div style="display: flex; height: 90vh;">
 	<div style="flex: 1; display: flex; flex-direction: column;">
 		<h1>1. 蝦幣紀錄貼到這裡</h1>
-        <textarea @bind="_viewModel.InputText" style="flex: 1; resize: none;"></textarea>
+        <textarea @bind="_viewModel.InputText" style="flex: 1; resize: none;" @onfocus="SelectAllText" @ref="inputTextArea"></textarea>
 		<br />
 		<h1>2. 按下計算</h1>
         <button class="btn-info" @onclick="Count" style="width: 200px; height: 100px; margin: auto"><h1>計算</h1></button>
@@ -26,10 +28,17 @@ ViewModel="_viewModel"/>
 @code{
     [Inject]
     private ResultViewModel _viewModel { get; set; } = new ResultViewModel();
+    private ElementReference inputTextArea;
+
 
     private void Count()
     {
         if (!string.IsNullOrWhiteSpace(_viewModel.InputText))
-            _viewModel.Count();
+            _viewModel.CountNew();
     }
+    private async Task SelectAllText(FocusEventArgs e)
+    {
+        await JS.InvokeVoidAsync("selectAllText", inputTextArea);
+    }
+
 }

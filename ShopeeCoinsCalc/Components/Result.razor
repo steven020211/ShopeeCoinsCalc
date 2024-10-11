@@ -1,7 +1,20 @@
 ﻿@using ShopeeCoinsCalc.Models
 
+@if (ViewModel.DataError)
+{
+<div class="modal" tabindex="-1" role="dialog" style="display:block; border: 2px solid black" @ref="modalDiv" @onkeydown="HandleKeyDown">
+        <div class="modal-dialog" role="document" style="max-width: 80vw">
+            <div class="modal-content">
+                <div style="margin: 20px;">
+                    <h3>輸入的資料有誤</h3>
+                    <button class="btn-secondary" @onclick="Close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-@if (ShowResult)
+}
+else if (ShowResult)
 {
     <!-- 使用 Bootstrap 的標準對話窗標記宣告 -->
 
@@ -12,9 +25,25 @@
                 <div style="margin: 20px;">
                     <h3>計算結果:</h3>
                     <br />
+                    <pre>
+                    <p>&emsp;總共賺了 @ViewModel.CoinInfos.Sum(g => g.Sum(x => x.Amount)) 蝦幣 :</p>
+                        @foreach (var group in ViewModel.CoinInfos)
+                        {
+                            var color = group.Key == "直播蝦幣" ? "red" : "black";
+                            var text = $"\t{group.Key} : {group.Count()} 次, {group.Sum(x => x.Amount)} 蝦幣";
+                            <p style="color: @color; line-height: 0;">
+                                @text
+                            </p>
+                            //@("&emsp;&emsp;@group.Key : @group.Count() 次, @group.Sum(x => x.Amount) 蝦幣");
+                        }
+                    </pre>
+                    <hr />
+
+<!--
                     <p>含轉盤共 @ViewModel.RetrivedCount 場直播蝦幣</p>
                     <p>總共賺了 @ViewModel.TotalAmount 蝦幣</p>
 
+-->
                     <div style="display: flex; flex-wrap: wrap;">
                         @if (ViewModel.SummaryData != null)
                         {
@@ -44,10 +73,50 @@
                                     </tbody>
                                 </table>
                             }
-
                         }
                     </div>
+                    <hr />
+                    <div>
+                        @{
+                            ChartDataList = ViewModel.CoinInfos
+                            .SelectMany(g => g)
+                            .GroupBy(x => x.Time.Hour)
+                            .Select(g => new ChartData()
+                {
+                    Hour = g.Key.ToString("D2"),
+                    Count = g.Count(),
+                    Amount = g.Sum(x => x.Amount)
+                })
+                            .UnionBy(
+                            Enumerable.Range(0, 24)
+                            .Select(n => new ChartData() { Hour = n.ToString("D2") }),
+                            x => x.Hour)
+                            .OrderBy(x => x.Hour)
+                            .ToList();
 
+                            <ApexChart TItem="ChartData"
+                                       Title="直播領蝦時間分佈"
+                                       Options="chartOptions">
+
+                                <ApexPointSeries TItem="ChartData"
+                                                 Items="ChartDataList"
+                                                 Name="次數"
+                                                 SeriesType="SeriesType.Line"
+                                                 XValue="e => e.Hour"
+                                                 YValue="e=> e.Count"
+                                                 Color="#FF5733" />
+
+                                <ApexPointSeries TItem="ChartData"
+                                                 Items="ChartDataList"
+                                                 Name="蝦幣總額"
+                                                 SeriesType="SeriesType.Line"
+                                                 XValue="e => e.Hour"
+                                                 YValue="e=> e.Amount"
+                                                 Color="#33FF57" />
+                            </ApexChart>
+                        }
+
+                    </div>
                     <br />
 
                     <button class="btn-secondary" @onclick="Close">Close</button>
@@ -58,19 +127,46 @@
 }
 
 @code {
+    private List<ChartData> ChartDataList { get; set; } = new();
+    private ApexChartOptions<ChartData> chartOptions = new ApexChartOptions<ChartData>
+        {
+            Chart = new Chart
+            {
+                Animations = new Animations
+                {
+                    Enabled = false // 关闭动画
+                },
+                RedrawOnParentResize = true
+            },
+            // 其他选项...
+        };
+    protected override void OnInitialized()
+    {
+        
+    }
+
+    public class ChartData
+    {
+        public string Hour { get; set; }
+        public int Count { get; set; }
+        public decimal Amount { get; set; }
+    }
+
     [Parameter]
     public bool ShowResult { get; set; } = false;
+    [Parameter]
+    public bool DataError { get; set; } = false;
+
     [Parameter]
     public ResultViewModel ViewModel { get; set; } = new ResultViewModel();
 
     private ElementReference modalDiv;
 
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (ShowResult)
+        if (ShowResult || ViewModel.DataError)
             await modalDiv.FocusAsync();
-
+            
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -83,6 +179,7 @@
     {
         ShowResult = false;
         ViewModel.ShowResult = false;
+        ViewModel.DataError = false;
         StateHasChanged();
     }
 }
