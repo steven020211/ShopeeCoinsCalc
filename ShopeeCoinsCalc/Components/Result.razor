@@ -80,6 +80,7 @@ else if (ShowResult)
                         @{
                             ChartDataList = ViewModel.CoinInfos
                             .SelectMany(g => g)
+                            .Where(g => g.Title == "直播蝦幣")
                             .GroupBy(x => x.Time.Hour)
                             .Select(g => new ChartData()
                 {
